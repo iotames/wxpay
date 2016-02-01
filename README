@@ -1,0 +1,62 @@
+
+PHP>5.3，支持命名空间。
+采用PHP包管理器Composer管理插件。安装和使用方法，请自行百度。
+运行composer update 更新第三方扩展包。
+添加第三方功能扩展包，请编辑composer.json, 然后运行composer update
+
+目录功能简介
+vendor  
+所有PHP第三方扩展包都在此目录。
+vendor/autoload.php  require  或 include 该文件，即可使用vendor目录下的所有第三方扩展类
+微信支付扩展包在vendor/wxpay目录下。
+WxPay.Api.php 包括所有微信支付API接口的封装
+WxPay.Config.php  商户配置
+WxPay.Data.php   输入参数封装
+WxPay.Exception.php  异常类
+WxPay.Notify.php    回调通知基类
+
+phpqrcode
+开源二维码php代码
+
+cert
+证书存放路径，证书可以登录商户平台https://pay.weixin.qq.com/index.php/account/api_cert下载
+
+logs
+日志文件
+
+conf.php 微信支付APP ,KEY配置文件. 配置参数定义为全局常量。
+配置指南
+define('WXAPPID', 'wx426b3015555a46be');//这里填开户邮件中的（公众账号APPID或者应用APPID）
+define('WXAPPSECRET', '01c6d59a3f9024db');//参数在JSAPI支付（open平台账户不能进行JSAPI支付）的时候需要用来获取用户openid，可使用APPID对应的公众平台登录http://mp.weixin.qq.com 的开发者中心获取AppSecret。
+
+define('WXMCHID', '1225312702');//这里填开户邮件中的商户define('WXMCHSECRET', 'e10adc3949ba59abbe56e057f20f883e');//这里请使用商户平台登录账户和密码登录http://pay.weixin.qq.com 平台设置的“API密钥”，为了安全，请设置为32字符串。
+define('WXMCHSECRET', 'e10adc3949');//这里请使用商户平台登录账户和密码登录http://pay.weixin.qq.com 平台设置的“API密钥”，为了安全，请设置为32字符串。
+
+$wxSSLcert=dirname(__file__).'/cert/apiclient_cert.pem';//证书文件路径
+$wxSSLkey=dirname(__file__).'/cert/apiclient_key.pem';//证书文件路径
+
+define('WXSSLCERT', $wxSSLcert);
+define('WXSSLKEY', $wxSSLkey);
+
+
+使用方法
+ 引入 conf.php微信支付配置文件和vendor/autoload.php 第三方扩展包入口文件，即可使用。
+如：
+require '../conf.php';//微信支付配置参数
+require '../vendor/autoload.php';//扩展包入口文件
+
+use use lib\WxPayApi;//微信支付接口操作类
+use lib\base\WxPayTransfer;//企业微信转账数据对象类
+use lib\base\WxPayConfig;//微信支付配置类
+$openid = $_REQUEST["openid"];
+	$amount = $_REQUEST["amount"];
+	$re_user_name=$_REQUEST['re_user_name'];
+	$input = new WxPayTransfer();
+	$input->SetOpenid($openid);//转账对象
+	$input->SetAmount($amount);//金额单位分，最少100分才能转
+	$input->SetRe_user_name($re_user_name);//经微信实名认证的用户真实姓名
+	$input->SetCheck_name('FORCE_CHECK');//FORCE_CHECK：强校验真实姓名
+	$input->SetPartner_trade_no(WxPayConfig::MCHID.date("YmdHis"));//创建转账单号
+	$input->SetDesc('这个是测试：吴汉青：泉州~');//转账说明，必填！
+	$result=WxPayApi::transfer($input);
+	var_dump($result);
